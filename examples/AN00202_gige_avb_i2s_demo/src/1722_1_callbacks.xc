@@ -82,5 +82,23 @@ void avb_talker_on_listener_disconnect(client interface avb_interface avb,
 void avb_talker_on_source_address_reserved(client interface avb_interface avb, int source_num, unsigned char mac_addr[6])
 {
   avb_talker_on_source_address_reserved_default(avb, source_num, mac_addr);
+
+#if AVB_1722_1_FAST_CONNECT_ENABLED
+  // This is key in the scenario where the Endpoint reboots whilst the rest of the Network is still active
+  // To automatically re-connect the Talker stream to the remote Listener that remains active.
+
+  unsigned stream_id[2];
+  enum avb_source_state_t state;
+  avb.get_source_state(source_num, state);
+  avb.get_source_id(source_num, stream_id);
+
+  if (state == AVB_SOURCE_STATE_DISABLED)
+  {
+    debug_printf("Setting AVB_SOURCE_STATE_POTENTIAL for source %d to trigger Talker Advertise\n",source_num);
+    avb_1722_1_talker_set_stream_id(source_num, stream_id);
+    avb.set_source_state(source_num, AVB_SOURCE_STATE_POTENTIAL);
+  }
+#endif
+  
 }
 #endif
