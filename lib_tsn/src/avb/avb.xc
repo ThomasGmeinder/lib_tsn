@@ -587,6 +587,7 @@ void set_avb_source_volumes(unsigned sink_num, int volumes[], int count)
 #endif
 
 
+unsigned int fast_connect_started = 0;
 void avb_process_1722_control_packet(unsigned int buf0[],
                                      unsigned nbytes,
                                      eth_packet_type_t packet_type,
@@ -606,7 +607,10 @@ void avb_process_1722_control_packet(unsigned int buf0[],
         }
 
 #if AVB_1722_1_FAST_CONNECT_ENABLED
-        acmp_start_fast_connect(i_eth);
+        if(!fast_connect_started) { // Call this only after boot, not after unplug-replug
+          acmp_start_fast_connect(i_eth);
+          fast_connect_started = 1;
+        }
 #endif
       }
     }
